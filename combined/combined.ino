@@ -16,7 +16,7 @@
 Servo testServo;
 LiquidCrystal_I2C lcd(0x00, 16, 2);
 
-long startMillis; // hellps the servo test take a consistent amount of time
+long startMillis; // helps the servo test take a consistent amount of time
 
 void setup()
 {
@@ -53,10 +53,10 @@ void loop()
       Serial.print(address, HEX);
       Serial.println("  !");
       nDevices++;
-      lcd = LiquidCrystal_I2C(address, 16, 2);
+      lcd = LiquidCrystal_I2C(address, 16, 2); // initialize the lcd at the address
       lcd.begin(16, 2);
       lcd.backlight();
-      lcd.print("0x");
+      lcd.print("0x"); // write the address to the lcd
       if (address < 16)
         lcd.print("0");
       lcd.print(address, HEX);
@@ -74,16 +74,16 @@ void loop()
   else
     Serial.println("done\n");
 
-  startMillis = millis();
+  startMillis = millis(); // for test timing
 
-  while(millis() - startMillis < SERVO_TEST_LENGTH/2) {
+  while(millis() - startMillis < SERVO_TEST_LENGTH/2) { // the first sweep
     int servoVal = map(millis()-startMillis, 0, SERVO_TEST_LENGTH/2, 0, 180);
     testServo.write(servoVal);
     // ultrasonic test
     lcd.setCursor(0, 1);
     lcd.print(getDistance());
     lcd.print("                "); // clear the rest of the line
-    Serial.print(servoVal);
+    Serial.print(servoVal); // some debug
     Serial.print(", time: ");
     Serial.println(millis()-startMillis);
   }
@@ -95,7 +95,7 @@ void loop()
     lcd.setCursor(0, 1);
     lcd.print(getDistance());
     lcd.print("                "); // clear the rest of the line
-    Serial.print(servoVal);
+    Serial.print(servoVal); // some debug
     Serial.print(", time: ");
     Serial.println(millis()-startMillis);
   }
