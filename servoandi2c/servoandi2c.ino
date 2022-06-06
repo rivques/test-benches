@@ -1,0 +1,77 @@
+// ---------------------------------------------------------------- /
+// Arduino I2C LCD Scanner
+// Based on code by Arbi Abdul Jabbaar at https://create.arduino.cc/projecthub/abdularbi17/how-to-scan-i2c-address-in-arduino-eaadda
+// ---------------------------------------------------------------- /
+
+#include <Wire.h> //include Wire.h library
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+
+#define SERVO_PIN 2
+
+Servo testServo;
+
+void setup()
+{
+  Wire.begin(); // Wire communication begin
+  Serial.begin(9600); // The baudrate of Serial monitor is set in 9600
+  while (!Serial); // Waiting for Serial Monitor
+  Serial.println("\nI2C Scanner");
+  testServo.attach(SERVO_PIN);
+}
+
+void loop()
+{
+  byte error, address; //variable for error and I2C address
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for (address = 1; address < 127; address++ )
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address < 16)
+        Serial.print("0");
+      Serial.print(address, HEX);
+      Serial.println("  !");
+      nDevices++;
+      LiquidCrystal_I2C lcd = LiquidCrystal_I2C(address, 16, 2);
+      lcd.begin(16, 2);
+      lcd.backlight();
+      lcd.print("0x");
+      if (address < 16)
+        lcd.print("0");
+      lcd.print(address, HEX);
+    }
+    else if (error == 4)
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address < 16)
+        Serial.print("0");
+      Serial.println(address, HEX);
+    }
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+  for(int j = 0; j < 2; j++){
+    for(int i = 0; i < 180; i++){
+      testServo.write(i);
+      delay(5);
+    }
+    for(int i = 180; i > 0; i--){
+      testServo.write(i);
+      delay(5);
+    }
+  }
+}
