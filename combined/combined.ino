@@ -8,8 +8,15 @@
 #include <Servo.h>
 
 #define SERVO_PIN 2
+#define TRIG_PIN 10
+#define ECHO_PIN 11
+
+#define SERVO_TEST_LENGTH 4000 // how long the servo test should last
 
 Servo testServo;
+LiquidCrystal_I2C lcd(0x00, 16, 2);
+
+long startMillis; // hellps the servo test take a consistent amount of time
 
 void setup()
 {
@@ -18,6 +25,8 @@ void setup()
   while (!Serial); // Waiting for Serial Monitor
   Serial.println("\nI2C Scanner");
   testServo.attach(SERVO_PIN);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
 }
 
 void loop()
@@ -44,7 +53,7 @@ void loop()
       Serial.print(address, HEX);
       Serial.println("  !");
       nDevices++;
-      LiquidCrystal_I2C lcd = LiquidCrystal_I2C(address, 16, 2);
+      lcd = LiquidCrystal_I2C(address, 16, 2);
       lcd.begin(16, 2);
       lcd.backlight();
       lcd.print("0x");
@@ -64,14 +73,44 @@ void loop()
     Serial.println("No I2C devices found\n");
   else
     Serial.println("done\n");
-  for(int j = 0; j < 2; j++){
-    for(int i = 0; i < 180; i++){
-      testServo.write(i);
-      delay(5);
-    }
-    for(int i = 180; i > 0; i--){
-      testServo.write(i);
-      delay(5);
-    }
+
+  startMillis = millis();
+
+  while(millis() - startMillis < SERVO_TEST_LENGTH/2) {
+    int servoVal = map(millis()-startMillis, 0, SERVO_TEST_LENGTH/2, 0, 180);
+    testServo.write(servoVal);
+    // ultrasonic test
+    lcd.setCursor(0, 1);
+    lcd.print(getDistance());
+    lcd.print("                "); // clear the rest of the line
+    Serial.print(servoVal);
+    Serial.print(", time: ");
+    Serial.println(millis()-startMillis);
   }
+  // same thing but the servo goes the other way
+  while(millis() - startMillis < SERVO_TEST_LENGTH) {
+    int servoVal = map(millis()-startMillis, SERVO_TEST_LENGTH/2, SERVO_TEST_LENGTH, 180, 0);
+    testServo.write(servoVal);
+    // ultrasonic test
+    lcd.setCursor(0, 1);
+    lcd.print(getDistance());
+    lcd.print("                "); // clear the rest of the line
+    Serial.print(servoVal);
+    Serial.print(", time: ");
+    Serial.println(millis()-startMillis);
+  }
+}
+
+long getDistance(){
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  // outward pulse
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  // receive pulse
+  long duration = pulseIn(ECHO_PIN, HIGH);
+  // Calculate the distance
+  long distance = duration * 0.034 / 2; 
+  return distance;
 }
