@@ -1,9 +1,11 @@
 # test-benches
 some arduino sketches to test various pieces of equipment
+
 Can test:
 - I2C LCDs (16x2 by default)
 - HC-SR04 ultrasonic sensors
 - servo motors
+
 Note: When testing servos w/o hc-sr04, servo motion will be jerky because the ultrasonic read will be timing out
 ## Assembly
 attach components according to constants and pin markings
